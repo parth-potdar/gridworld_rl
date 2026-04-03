@@ -1,4 +1,5 @@
 import numpy as np # for arrays
+import matplotlib.pyplot as plt # for rendering grid
 
 """Environments"""
 
@@ -39,7 +40,7 @@ class GridWorld(BaseEnv):
         self.grid_size = grid_size
         self.start_pos = start_pos
         self.goal_pos = goal_pos
-        self.obstacles = obstacles
+        self.obstacles = set(obstacles) # cast to set for O(1) lookup
 
         """
         Define the observation space and action space
@@ -67,7 +68,7 @@ class GridWorld(BaseEnv):
         RETURNS: intial observation (starting pos and goal)
         """
         
-        self.obs = np.array([start_pos, goal_pos])
+        self.obs = np.array([self.start_pos, self.goal_pos])
         return self.obs
     
     def step(self, action):
@@ -83,7 +84,8 @@ class GridWorld(BaseEnv):
         """
 
         # copy current position of agent
-        new_pos = self.obs[0]
+        current_pos = self.obs[0]
+        new_pos = current_pos.copy()
 
         # intialise done flag
         done = False
@@ -110,10 +112,10 @@ class GridWorld(BaseEnv):
         if (new_pos[0] >= self.grid_size[0] or new_pos[0] < 0
             or new_pos[1] >= self.grid_size[1] or new_pos[1] < 0):
             # stay where you are
-            new_pos = self.obs[0]
+            new_pos = current_pos
         # check if hit an obstacle (for now this is a soft hit that keeps you where you are)
         elif tuple(new_pos) in self.obstacles:
-            new_pos = self.obs[0]
+            new_pos = current_pos
             hit_obstacle = True
         
         """
@@ -140,11 +142,49 @@ class GridWorld(BaseEnv):
         return  self.obs, reward, done, hit_obstacle
 
     def render(self):
-        pass
+        """
+        Plot the environment using matplotlib:
+        - agent's current location - blue
+        - agent's starting location - light blue
+        - goal - green
+        - grid and boundary
+        - obstacles - red
+        """
+
+        fig, ax = plt.subplots()
+        rows, cols = self.grid_size
+
+        # Draw grid
+        for x in range(cols + 1):
+            ax.axvline(x, color='gray', linewidth=1)
+        for y in range(rows + 1):
+            ax.axhline(y, color='gray', linewidth=1)
+
+        # Draw boundary
+        ax.set_xlim(0, cols)
+        ax.set_ylim(0, rows)
+
+        # Draw start
+        # Have to flip the tuples as Rectangle expects x (horizontal col) and y (vertical row)
+        # but we are using matrix indexing which is opposite
+        ax.add_patch(plt.Rectangle(self.start_pos[::-1], 1, 1, color='lightblue'))
+        # Draw agent
+        ax.add_patch(plt.Rectangle(self.obs[0][::-1], 1, 1, color='blue'))
+        # Draw goal
+        ax.add_patch(plt.Rectangle(self.goal_pos[::-1], 1, 1, color='green'))
+        # Draw obstacles
+        for obs in self.obstacles:
+            ax.add_patch(plt.Rectangle(obs[::-1], 1, 1, color='red'))
+
+        # Invert y-axis so (0,0) is at bottom-left
+        ax.invert_yaxis()
+        ax.set_aspect('equal')
+        plt.show()
+    
 
 if __name__ == "__main__":
     """Test grid environment"""
-    grid_size = (3,3)
+    grid_size = (4,5)
 
     start_pos = (0,0) # axis stars at top right (matrix index coordinates)
     goal_pos = (0,2)
@@ -152,4 +192,5 @@ if __name__ == "__main__":
 
     grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
 
-    print(grid_env.step(3))
+    print(grid_env.step(1))
+    grid_env.render()
