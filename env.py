@@ -42,44 +42,114 @@ class GridWorld(BaseEnv):
         self.obstacles = obstacles
 
         """
-        Build the grid environment as a numpy array, and fill out the relevant cells
-        - Agent location -> 1
-        - Goal -> 2
-        - Obstacles -> 3
-        - Free cell -> 0
+        Define the observation space and action space
+        - Observation space is information the agent sees
+        - Action space is the possible actions an agent can take
+        In v1: 
+        Observation space: (agent_pos, goal_pos) 
+                            -> agent know where it is, and where the goal is (same as state-space)
+        Action space: (UP, DOWN, LEFT, RIGHT)
         """
-        # initialise all cells as free (0s)
-        self.grid = np.zeros(grid_size)
+        # initialise observation to starting state (in this case obs = state space as it sees goal too)
+        self.obs = np.array([start_pos, goal_pos])
 
-        self.grid[start_pos] = 1 #  starting pos
-        self.grid[goal_pos] = 2 # goal pos
-        for obstacle in obstacles:
-            self.grid[obstacle] = 3
+        # initialise action space dict - useful for debugging what actions its taking
+        self.action_space = {
+            0: "UP",
+            1: "DOWN",
+            2: "LEFT",
+            3: "RIGHT"
+        }
 
-        """Define the observation space and action space"""
-        
     def reset(self):
-        """Reset function: reset the environment to its initial state using initial values"""
-        # reset all cells to 0
-        self.grid = np.zeros(grid_size)
-
-        self.grid[start_pos] = 1 #  starting pos
-        self.grid[goal_pos] = 2 # goal pos
-        for obstacle in obstacles:
-            self.grid[obstacle] = 3
+        """
+        Reset function: reset the environment to its initial state using initial values
+        RETURNS: intial observation (starting pos and goal)
+        """
+        
+        self.obs = np.array([start_pos, goal_pos])
+        return self.obs
     
     def step(self, action):
-        """Apply an action to environment and return state, reward"""
+        """
+        Apply an action to environment and return state, reward
+        ACTION: 0 - UP, 1 - DOWN, 2 - LEFT, 3 - RIGHT
+
+        1. Apply action
+        2. Handle if you hit a wall or obstacle
+        3. Compute reward using reward function
+        4. Check if done
+        5. Return observation', reward
+        """
+
+        # copy current position of agent
+        new_pos = self.obs[0]
+
+        # intialise done flag
+        done = False
+
+        # intialise obstacle hit flag
+        hit_obstacle = False
+
+        """Apply action to get new position of agent"""
+        if action == 0:
+            # UP
+            new_pos[0] -= 1
+        elif action == 1:
+            # DOWN
+            new_pos[0] += 1
+        elif action == 2:
+            # LEFT
+            new_pos[1] -= 1
+        elif action == 3:
+            # RIGHT
+            new_pos[1] += 1
+
+        """Handle hitting the walls or an obstacle"""
+        # check if new pos puts you outside of the grid
+        if (new_pos[0] >= self.grid_size[0] or new_pos[0] < 0
+            or new_pos[1] >= self.grid_size[1] or new_pos[1] < 0):
+            # stay where you are
+            new_pos = self.obs[0]
+        # check if hit an obstacle (for now this is a soft hit that keeps you where you are)
+        elif tuple(new_pos) in self.obstacles:
+            new_pos = self.obs[0]
+            hit_obstacle = True
+        
+        """
+        Compute rewards for this action
+        For v1 use simple reward function:
+            if goal reached = +1
+            if obstacle hit = -0.1
+            if not reached goal yet = -0.01 (to penalise long paths)
+            if wall hit = -0.01
+        """
+        reward = 0
+        if (new_pos == self.goal_pos).all():
+            reward = 1
+            done = True
+        elif hit_obstacle:
+            reward = -0.1
+        else:
+            reward = -0.01
+
+        # update observation
+        self.obs[0] = new_pos
+
+        """Return observation, reward and some extra flags"""
+        return  self.obs, reward, done, hit_obstacle
+
+    def render(self):
         pass
 
 if __name__ == "__main__":
     """Test grid environment"""
     grid_size = (3,3)
 
-    start_pos = (0,0)
+    start_pos = (0,0) # axis stars at top right (matrix index coordinates)
     goal_pos = (0,2)
     obstacles = [(0,1), (1,1)]
 
     grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
 
-    print(grid_env.grid)
+    print(grid_env.step(3))
