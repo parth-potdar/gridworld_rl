@@ -51,7 +51,7 @@ class GridWorld(BaseEnv):
         Action space: (UP, DOWN, LEFT, RIGHT)
         """
         # intialise the agent's position
-        self.agent_pos = np.array(start_pos)
+        self.agent_pos = np.array(self.start_pos)
 
         # initialise action space dict - useful for debugging what actions its taking
         self.action_space = {
@@ -73,7 +73,7 @@ class GridWorld(BaseEnv):
         """
         
        # intialise the agent's position back to start
-        self.agent_pos = np.array(start_pos)
+        self.agent_pos = np.array(self.start_pos)
         return self._get_obs()
     
     def step(self, action):
@@ -158,36 +158,43 @@ class GridWorld(BaseEnv):
         - obstacles - red
         """
 
-        fig, ax = plt.subplots()
+        """ Use fig and ax class attributes to create a persisent figure"""
+        if not hasattr(self, 'fig'):  # Create figure once
+            self.fig, self.ax = plt.subplots()
+            plt.ion()
+        else:
+            self.ax.clear()  # Clear previous frame
+
         rows, cols = self.grid_size
 
         # Draw grid
         for x in range(cols + 1):
-            ax.axvline(x, color='gray', linewidth=1)
+            self.ax.axvline(x, color='gray', linewidth=1)
         for y in range(rows + 1):
-            ax.axhline(y, color='gray', linewidth=1)
+            self.ax.axhline(y, color='gray', linewidth=1)
 
         # Draw boundary
-        ax.set_xlim(0, cols)
-        ax.set_ylim(0, rows)
+        self.ax.set_xlim(0, cols)
+        self.ax.set_ylim(0, rows)
 
         # Draw start
         # Have to flip the tuples as Rectangle expects x (horizontal col) and y (vertical row)
         # but we are using matrix indexing which is opposite
-        ax.add_patch(plt.Rectangle(self.start_pos[::-1], 1, 1, color='lightblue'))
+        self.ax.add_patch(plt.Rectangle(self.start_pos[::-1], 1, 1, color='lightblue'))
         # Draw agent
-        ax.add_patch(plt.Rectangle(self.agent_pos[::-1], 1, 1, color='blue'))
+        self.ax.add_patch(plt.Rectangle(self.agent_pos[::-1], 1, 1, color='blue'))
         # Draw goal
-        ax.add_patch(plt.Rectangle(self.goal_pos[::-1], 1, 1, color='green'))
+        self.ax.add_patch(plt.Rectangle(self.goal_pos[::-1], 1, 1, color='green'))
         # Draw obstacles
         for obs in self.obstacles:
-            ax.add_patch(plt.Rectangle(obs[::-1], 1, 1, color='red'))
+            self.ax.add_patch(plt.Rectangle(obs[::-1], 1, 1, color='red'))
 
         # Invert y-axis so (0,0) is at bottom-left
-        ax.invert_yaxis()
-        ax.set_aspect('equal')
-        plt.show()
-    
+        self.ax.invert_yaxis()
+        self.ax.set_aspect('equal')
+        plt.draw() # redraw figure
+        plt.pause(0.5)
+
 
 if __name__ == "__main__":
     """Test grid environment"""
