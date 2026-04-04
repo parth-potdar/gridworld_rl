@@ -39,7 +39,7 @@ class GridWorld(BaseEnv):
         
         self.grid_size = grid_size
         self.start_pos = start_pos
-        self.goal_pos = goal_pos
+        self.goal_pos = np.array(goal_pos)
         self.obstacles = set(obstacles) # cast to set for O(1) lookup
 
         """
@@ -47,12 +47,13 @@ class GridWorld(BaseEnv):
         - Observation space is information the agent sees
         - Action space is the possible actions an agent can take
         In v1: 
+        State space: agent_pos and goal pos
         Observation space: (agent_pos, goal_pos) 
                             -> agent know where it is, and where the goal is (same as state-space)
         Action space: (UP, DOWN, LEFT, RIGHT)
         """
-        # initialise observation to starting state (in this case obs = state space as it sees goal too)
-        self.obs = np.array([start_pos, goal_pos])
+        # intialise the agent's position
+        self.agent_pos = np.array(start_pos)
 
         # initialise action space dict - useful for debugging what actions its taking
         self.action_space = {
@@ -61,15 +62,20 @@ class GridWorld(BaseEnv):
             2: "LEFT",
             3: "RIGHT"
         }
+    
+    def _get_obs(self):
+        """Helper function to create the observation separately to state"""
+        return np.concatenate([self.agent_pos, self.goal_pos]) # return observation 2D array
 
     def reset(self):
         """
         Reset function: reset the environment to its initial state using initial values
-        RETURNS: intial observation (starting pos and goal)
+        RETURNS: intial observation
         """
         
-        self.obs = np.array([self.start_pos, self.goal_pos])
-        return self.obs
+       # intialise the agent's position back to start
+        self.agent_pos = np.array(start_pos)
+        return self._get_obs()
     
     def step(self, action):
         """
@@ -84,14 +90,13 @@ class GridWorld(BaseEnv):
         """
 
         # copy current position of agent
-        current_pos = self.obs[0]
-        new_pos = current_pos.copy()
+        new_pos = self.agent_pos.copy()
 
         # intialise done flag
         done = False
 
-        # intialise obstacle hit flag
         hit_obstacle = False
+        info = {} # initalise info dictionary for other flags
 
         """Apply action to get new position of agent"""
         if action == 0:
@@ -112,10 +117,10 @@ class GridWorld(BaseEnv):
         if (new_pos[0] >= self.grid_size[0] or new_pos[0] < 0
             or new_pos[1] >= self.grid_size[1] or new_pos[1] < 0):
             # stay where you are
-            new_pos = current_pos
+            new_pos = self.agent_pos.copy()
         # check if hit an obstacle (for now this is a soft hit that keeps you where you are)
         elif tuple(new_pos) in self.obstacles:
-            new_pos = current_pos
+            new_pos = self.agent_pos.copy()
             hit_obstacle = True
         
         """
@@ -135,11 +140,14 @@ class GridWorld(BaseEnv):
         else:
             reward = -0.01
 
-        # update observation
-        self.obs[0] = new_pos
+        # update agents position
+        self.agent_pos = new_pos
+
+        # add hit obstacle flag to info
+        info['hit_obstacle'] = hit_obstacle
 
         """Return observation, reward and some extra flags"""
-        return  self.obs, reward, done, hit_obstacle
+        return  self._get_obs(), reward, done, info
 
     def render(self):
         """
@@ -169,7 +177,7 @@ class GridWorld(BaseEnv):
         # but we are using matrix indexing which is opposite
         ax.add_patch(plt.Rectangle(self.start_pos[::-1], 1, 1, color='lightblue'))
         # Draw agent
-        ax.add_patch(plt.Rectangle(self.obs[0][::-1], 1, 1, color='blue'))
+        ax.add_patch(plt.Rectangle(self.agent_pos[::-1], 1, 1, color='blue'))
         # Draw goal
         ax.add_patch(plt.Rectangle(self.goal_pos[::-1], 1, 1, color='green'))
         # Draw obstacles
@@ -186,11 +194,10 @@ if __name__ == "__main__":
     """Test grid environment"""
     grid_size = (4,5)
 
-    start_pos = (0,0) # axis stars at top right (matrix index coordinates)
+    start_pos = (2,2) # axis stars at top right (matrix index coordinates)
     goal_pos = (0,2)
     obstacles = [(0,1), (1,1)]
 
     grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
 
-    print(grid_env.step(1))
-    grid_env.render()
+    
