@@ -2,7 +2,6 @@ import numpy as np # for arrays
 import matplotlib.pyplot as plt # for rendering grid
 
 """Environments"""
-
 class BaseEnv():
     """Abstract Environment class"""
     def __init__(self):
@@ -22,7 +21,6 @@ class BaseEnv():
         pass
 
 """GridWorlds - 2D grid environments for navigation"""
-
 class GridWorld(BaseEnv):
     """
     GridWorld 1.0: Grid with obstacles and a single goal
@@ -57,11 +55,12 @@ class GridWorld(BaseEnv):
 
         # initialise action space dict - useful for debugging what actions its taking
         self.action_space = {
-            0: "UP",
-            1: "DOWN",
-            2: "LEFT",
-            3: "RIGHT"
+            "UP": 0,
+            "DOWN": 1,
+            "LEFT": 2,
+            "RIGHT": 3
         }
+        self.num_actions = len(self.action_space)
     
     def _get_obs(self):
         """Helper function to create the observation separately to state"""
@@ -99,16 +98,16 @@ class GridWorld(BaseEnv):
         info = {} # initalise info dictionary for other flags
 
         """Apply action to get new position of agent"""
-        if action == 0:
+        if action == self.action_space['UP']:
             # UP
             new_pos[0] -= 1
-        elif action == 1:
+        elif action == self.action_space['DOWN']:
             # DOWN
             new_pos[0] += 1
-        elif action == 2:
+        elif action == self.action_space['LEFT']:
             # LEFT
             new_pos[1] -= 1
-        elif action == 3:
+        elif action == self.action_space['RIGHT']:
             # RIGHT
             new_pos[1] += 1
 
@@ -199,5 +198,7 @@ if __name__ == "__main__":
     obstacles = [(0,1), (1,1)]
 
     grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
+
+    print(grid_env.step(3))
 
     
