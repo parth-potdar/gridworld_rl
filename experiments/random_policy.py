@@ -1,10 +1,6 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 """Test the grid environment using a random policy"""
-from env import GridWorld
-from policy import RandomPolicy
+from gridworld_rl.env import GridWorld
+from gridworld_rl.policy import RandomPolicy
 
 import numpy as np
 import matplotlib.pyplot as plt

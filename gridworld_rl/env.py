@@ -198,14 +198,3 @@ class GridWorld(BaseEnv):
 
 if __name__ == "__main__":
     """Test grid environment"""
-    grid_size = (4,5)
-
-    start_pos = (2,2) # axis stars at top right (matrix index coordinates)
-    goal_pos = (0,2)
-    obstacles = [(0,1), (1,1)]
-
-    grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
-
-    print(grid_env.step(3))
-
-    

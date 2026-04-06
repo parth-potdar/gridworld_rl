@@ -1,5 +1,5 @@
 """Policies to test on GridWorld"""
-from env import GridWorld
+from .env import GridWorld
 import numpy as np
 
 class RandomPolicy():
