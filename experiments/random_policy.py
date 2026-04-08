@@ -12,13 +12,11 @@ goal_pos = (0,2)
 obstacles = [(0,1), (1,1)]
 
 grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
-policy = np.random.choice(grid_env.num_actions)
-
 obs = grid_env.reset() # reset environment
 
 done = False
 while not done: # until goal reached
-    action = policy.act(obs) # take action
+    action = np.random.choice(grid_env.num_actions)
     obs, reward, done, info = grid_env.step(action)
 
     grid_env.render()
