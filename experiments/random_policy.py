@@ -1,6 +1,5 @@
 """Test the grid environment using a random policy"""
 from gridworld_rl.env import GridWorld
-from gridworld_rl.policy import RandomPolicy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +12,7 @@ goal_pos = (0,2)
 obstacles = [(0,1), (1,1)]
 
 grid_env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
-policy = RandomPolicy(grid_env)
+policy = np.random.choice(grid_env.num_actions)
 
 obs = grid_env.reset() # reset environment
 
