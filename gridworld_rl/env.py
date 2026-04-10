@@ -64,7 +64,7 @@ class GridWorld(BaseEnv):
     
     def _get_obs(self):
         """Helper function to create the observation separately to state"""
-        return np.concatenate([self.agent_pos, self.goal_pos]) # return observation 2D array
+        return self.agent_pos # initially, agent pos is the observation
 
     def reset(self):
         """
