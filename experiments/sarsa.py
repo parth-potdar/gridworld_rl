@@ -5,6 +5,7 @@ import random
 
 # import grid environment
 from gridworld_rl.env import GridWorld
+from gridworld_rl.utils import epsilon_greedy
 
 #initialise environment
 grid_size = (6, 8)
@@ -23,14 +24,6 @@ env = GridWorld(grid_size, start_pos, goal_pos, obstacles)
 
 # intialise q-table
 Q_table = np.zeros((env.grid_size[0], env.grid_size[1], env.num_actions))
-
-# define epsilon greedy policy
-def epsilon_greedy(state, epsilon, Q_table, num_actions):
-    if random.random() < epsilon:
-        action = np.random.choice(num_actions)
-    else:
-        action = np.argmax(Q_table[state[0]][state[1]])
-    return action
 
 """
 SARSA algorithm - Temporal Difference (TD(0)) on the Q function
@@ -146,7 +139,7 @@ for i in range(env.grid_size[0]):
             
 plt.tight_layout()
 plt.show()
-fig.savefig("experiments/sarsa.png")
+fig.savefig("experiments/results/sarsa.png")
 
 
     
